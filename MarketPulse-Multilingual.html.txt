@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Track real-time cryptocurrency and global market prices in multiple languages.">
+    <meta name="keywords" content="cryptocurrency, market prices, forex, live tracker, multilingual">
+    <meta name="author" content="MarketPulse">
+    <title>MarketPulse: Live Market Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #fff;
+            color: #333;
+        }
+        header {
+            background-color: #b30000;
+            color: white;
+            text-align: center;
+            padding: 1.5rem 0;
+        }
+        nav {
+            background: #333;
+            display: flex;
+            justify-content: center;
+            padding: 0.5rem;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 1rem;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .section {
+            padding: 2rem;
+            text-align: center;
+        }
+        canvas {
+            max-width: 90%;
+            margin: 2rem auto;
+        }
+        footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+        }
+        .loading {
+            animation: fadeIn 1s infinite;
+        }
+        @keyframes fadeIn {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        select {
+            margin: 1rem;
+            padding: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>MarketPulse</h1>
+        <p data-lang="realTimePrices">Real-time Cryptocurrency & Market Prices</p>
+    </header>
+    <nav>
+        <a href="#currencies" data-lang="currencies">Currencies</a>
+        <a href="#cryptocurrencies" data-lang="cryptocurrencies">Cryptocurrencies</a>
+        <a href="#charts" data-lang="charts">Charts</a>
+        <a href="#contact" data-lang="contact">Contact</a>
+    </nav>
+
+    <div style="text-align: center;">
+        <label for="language-selector" data-lang="chooseLanguage">Choose Language:</label>
+        <select id="language-selector">
+            <option value="en">English</option>
+            <option value="ru">Русский</option>
+            <option value="es">Español</option>
+            <option value="it">Italiano</option>
+            <option value="de">Deutsch</option>
+            <option value="fr">Français</option>
+            <option value="zh">中文</option>
+            <option value="hi">हिन्दी</option>
+            <option value="ko">한국어</option>
+            <option value="ja">日本語</option>
+            <option value="hy">Հայերեն</option>
+        </select>
+    </div>
+
+    <section class="section" id="currencies">
+        <h2 data-lang="globalCurrencies">Global Currencies</h2>
+        <div id="currency-rates">
+            <p class="loading" data-lang="loadingCurrencies">Loading currency rates...</p>
+        </div>
+    </section>
+
+    <section class="section" id="cryptocurrencies">
+        <h2 data-lang="cryptoPrices">Cryptocurrency Prices</h2>
+        <div id="crypto-prices">
+            <p class="loading" data-lang="loadingCryptos">Loading cryptocurrency prices...</p>
+        </div>
+    </section>
+
+    <section class="section" id="charts">
+        <h2 data-lang="priceTrends">Price Trends</h2>
+        <canvas id="priceChart"></canvas>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 MarketPulse. <span data-lang="allRightsReserved">All Rights Reserved.</span></p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const translations = {
+            en: {
+                realTimePrices: "Real-time Cryptocurrency & Market Prices",
+                currencies: "Currencies",
+                cryptocurrencies: "Cryptocurrencies",
+                charts: "Charts",
+                contact: "Contact",
+                chooseLanguage: "Choose Language:",
+                globalCurrencies: "Global Currencies",
+                cryptoPrices: "Cryptocurrency Prices",
+                priceTrends: "Price Trends",
+                loadingCurrencies: "Loading currency rates...",
+                loadingCryptos: "Loading cryptocurrency prices...",
+                allRightsReserved: "All Rights Reserved."
+            },
+            // Add other languages here
+            hy: {
+                realTimePrices: "Կրիպտոարժույթներ և շուկայի գներ իրական ժամանակում",
+                currencies: "Արժույթներ",
+                cryptocurrencies: "Կրիպտոարժույթներ",
+                charts: "Գրաֆիկներ",
+                contact: "Կապ",
+                chooseLanguage: "Ընտրեք լեզուն:",
+                globalCurrencies: "Համաշխարհային Արժույթներ",
+                cryptoPrices: "Կրիպտոարժույթների Գներ",
+                priceTrends: "Գների միտումներ",
+                loadingCurrencies: "Բեռնվում են արժույթների գները...",
+                loadingCryptos: "Բեռնվում են կրիպտոարժույթների գները...",
+                allRightsReserved: "Բոլոր իրավունքները պաշտպանված են։"
+            }
+            // Add more translations...
+        };
+
+        const setLanguage = (lang) => {
+            document.querySelectorAll("[data-lang]").forEach(el => {
+                const key = el.getAttribute("data-lang");
+                if (translations[lang] && translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
+            });
+        };
+
+        document.getElementById("language-selector").addEventListener("change", (e) => {
+            setLanguage(e.target.value);
+        });
+
+        // Default language
+        setLanguage("en");
+
+        const fetchCurrencyRates = async () => {
+            try {
+                const response = await fetch('https://api.exchangerate.host/latest');
+                const data = await response.json();
+                const rates = data.rates;
+
+                let currencyHTML = '<ul>';
+                for (const [currency, rate] of Object.entries(rates)) {
+                    currencyHTML += `<li><b>${currency}:</b> ${rate.toFixed(2)}</li>`;
+                }
+                currencyHTML += '</ul>';
+                document.getElementById('currency-rates').innerHTML = currencyHTML;
+            } catch (error) {
+                document.getElementById('currency-rates').innerHTML = '<p>Error loading currency rates.</p>';
+            }
+        };
+
+        const fetchCryptoPrices = async () => {
+            try {
+                const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd');
+                const data = await response.json();
+
+                let cryptoHTML = '<ul>';
+                data.forEach((coin) => {
+                    cryptoHTML += `<li><b>${coin.name} (${coin.symbol.toUpperCase()}):</b> $${coin.current_price.toFixed(2)}</li>`;
+                });
+                cryptoHTML += '</ul>';
+                document.getElementById('crypto-prices').innerHTML = cryptoHTML;
+            } catch (error) {
+                document.getElementById('crypto-prices').innerHTML = '<p>Error loading cryptocurrency prices.</p>';
+            }
+        };
+
+        const renderChart = async () => {
+            try {
+                const response = await fetch('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=7');
+                const data = await response.json();
+
+                const labels = data.prices.map(price => new Date(price[0]).toLocaleDateString());
+                const prices = data.prices.map(price => price[1]);
+
+                const ctx = document.getElementById('priceChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Bitcoin Price (USD)',
+                            data: prices,
+                            borderColor: '#b30000',
+                            borderWidth: 2,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: {
+                                title: { display: true, text: 'Date' }
+                            },
+                            y: {
+                                title: { display: true, text: 'Price (USD)' }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                document.getElementById('priceChart').innerHTML = '<p>Error loading chart data.</p>';
+            }
+        };
+
+        fetchCurrencyRates();
+        fetchCryptoPrices();
+        renderChart();
+    </script>
+</body>
+</html>
